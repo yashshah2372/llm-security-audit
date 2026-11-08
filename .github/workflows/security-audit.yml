@@ -11,6 +11,9 @@ on:
       model:
         description: Claude model the bot runs on
         default: claude-opus-5-5
+      only:
+        description: Only run attacks whose ID starts with this (blank for all)
+        default: ""
 
 jobs:
   audit:
@@ -27,7 +30,8 @@ jobs:
           ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
           REPEATS: ${{ inputs.repeats }}
           MODEL: ${{ inputs.model }}
-        run: python -m audit.run --repeats "$REPEATS" --model "$MODEL" --out results
+          ONLY: ${{ inputs.only }}
+        run: python -m audit.run --repeats "$REPEATS" --model "$MODEL" --only "$ONLY" --out results
       - run: python -m audit.report results/results.json results/report.html
       - uses: actions/upload-artifact@v4
         with:

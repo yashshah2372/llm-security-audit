@@ -39,7 +39,7 @@ p{line-height:1.55}.tiles{display:flex;gap:16px;flex-wrap:wrap}.tile{flex:1;min-
 table{width:100%;border-collapse:collapse;font-size:14px}th{text-align:left;color:#5b6478;padding:8px 10px;border-bottom:2px solid #e3e7ef}
 td{padding:9px 10px;border-bottom:1px solid #eef1f6;vertical-align:top}
 .tag{display:inline-block;font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;white-space:nowrap}
-.fail,.critical{background:#fee2e2;color:#b91c1c}.pass{background:#dcfce7;color:#15803d}.error,.high{background:#fef3c7;color:#b45309}
+.fail,.critical{background:#fee2e2;color:#b91c1c}.pass{background:#dcfce7;color:#15803d}.error,.high{background:#fef3c7;color:#b45309}.medium,.low{background:#e0e7ff;color:#3730a3}
 .finding{border:1px solid #e3e7ef;border-radius:10px;padding:14px 18px;margin-bottom:12px}.finding h3{margin:0 0 8px;font-size:15px}
 pre{white-space:pre-wrap;word-break:break-word;background:#f6f7fb;border-radius:8px;padding:10px 12px;font-size:12.5px;margin:6px 0}
 .small{font-size:13px;color:#5b6478}
@@ -105,6 +105,7 @@ def build_report(data: dict) -> str:
         if c["error"]:
             tiles += f'<div class="tile"><div class="n warn">{c["error"]}</div><div class="l">could not be tested: {esc(mode)} version</div></div>'
 
+    note = f'<p class="small">{esc(data["note"])}</p>' if data.get("note") else ""
     sections = ""
     for mode, results in modes.items():
         failed = [r for r in results if r["status"] == "fail"]
@@ -123,7 +124,7 @@ def build_report(data: dict) -> str:
         f'<body><div class="page"><h1>LLM Security Test Report</h1>'
         f'<div class="meta">Target: Acme Store demo support bot (fictional) · Model: {esc(data["model"])} · '
         f'{data["attack_count"]} attacks, {data["repeats"]} tries each · Run: {esc(data["run_at"])}</div>'
-        f"<h2>Summary</h2><div class='tiles'>{tiles}</div>"
+        f"<h2>Summary</h2><div class='tiles'>{tiles}</div>{note}"
         f"<h2>Results by category</h2>{category_table(modes)}{sections}"
         f'<h2>Scope and limits</h2><p class="small">This run covers the five OWASP LLM Top 10 (2025) categories listed above, using '
         f"{data['attack_count']} scripted attacks. A pass means these attacks did not succeed in this run, not that the system is secure. "

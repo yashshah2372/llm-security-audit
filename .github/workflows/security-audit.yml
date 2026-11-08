@@ -1,0 +1,35 @@
+name: Security audit
+
+# Started by hand because it calls the model and costs money. Add
+# --fail-on-findings to use it as a release gate on the hardened version.
+on:
+  workflow_dispatch:
+    inputs:
+      repeats:
+        description: Tries per attack
+        default: "2"
+      model:
+        description: Claude model the bot runs on
+        default: claude-opus-5-5
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Run attacks against both versions
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          REPEATS: ${{ inputs.repeats }}
+          MODEL: ${{ inputs.model }}
+        run: python -m audit.run --repeats "$REPEATS" --model "$MODEL" --out results
+      - run: python -m audit.report results/results.json results/report.html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: audit-results
+          path: results/
